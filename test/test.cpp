@@ -2,11 +2,11 @@
 
 	Commands to run:
 
-	Kevin - g++ test.cpp -o ./test -I /Library/Frameworks/SDL2.framework/Versions/A/Headers
+	Kevin - g++ test.cpp -o ./test && ./test
 
 */
 
-#include "SDL.h"
+#include "../library/SDL.h"
 
 int main() {
 	
