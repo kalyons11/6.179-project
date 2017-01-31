@@ -37,7 +37,15 @@ int main( int argc, char* args[] )
 			screenSurface = SDL_GetWindowSurface( window );
 
 			//Fill the surface white
-			SDL_FillRect( screenSurface, NULL, SDL_MapRGB( screenSurface->format, 0xFF, 0xFF, 0xFF ) );
+			//SDL_FillRect( screenSurface, NULL, SDL_MapRGB( screenSurface->format, 0xFF, 0xFF, 0xFF ) );
+
+			SDL_Rect black_box;
+			black_box.x = 100;
+			black_box.y = 200;
+			black_box.w = 50;
+			black_box.y = 50;
+
+			SDL_FillRect(screenSurface, &black_box, SDL_MapRGB(screenSurface->format, 255, 0 , 255));
 			
 			//Update the surface
 			SDL_UpdateWindowSurface( window );
