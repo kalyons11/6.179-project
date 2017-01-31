@@ -36,8 +36,8 @@ mt19937 rng;
 uniform_real_distribution<double> x_dist(10, sizeX - 10);
 uniform_real_distribution<double> y_dist(10, sizeY - 10);
 
-int x_speed = 7;
-int y_speed = 3;
+int x_speed = 10;
+int y_speed = 5;
 
 bool started = false;
 
@@ -71,7 +71,7 @@ bool keep_playing() {
 SDL_Window* window;
 SDL_Renderer* renderer;
 
-bool InitEverything(){
+bool init_everything(){
 	if(!init_sdl()){
 		return false;
 	}
@@ -85,7 +85,7 @@ bool InitEverything(){
 	return true;
 }
 
-bool init_sdl(){
+bool init_sdl() {
 	if(SDL_Init(SDL_INIT_EVERYTHING) == -1){
 		cout << "SDL failed to initialize: " << SDL_GetError() << endl;
 		return false;
@@ -93,8 +93,8 @@ bool init_sdl(){
 	return true;
 }
 
-bool create_window(){
-	window = SDL_CreateWindow("KW Pong", posX, posY, sizeY, sizeX, 0);
+bool create_window() {
+	window = SDL_CreateWindow("KW Pong", posX, posY, sizeX, sizeY, 0);
 	if(window == nullptr){
 		cout << "Could not create window:" << SDL_GetError()<< endl;
 		return false;
@@ -102,7 +102,7 @@ bool create_window(){
 	return true;
 }
 
-bool create_renderer(){
+bool create_renderer() {
 	renderer = SDL_CreateRenderer(window, -1, 0);
 	if(renderer == nullptr){
 		cout<< "Could not create renderer: " << SDL_GetError() << endl;
@@ -110,23 +110,25 @@ bool create_renderer(){
 	}
 	return true;
 }
-void set_up_renderer(){
+
+void set_up_renderer() {
 	SDL_RenderSetLogicalSize(renderer, sizeX, sizeY);
 	SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-
 }
 
-void render(){
+void render() {
 	SDL_RenderClear(renderer);
-	SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0);
+	SDL_SetRenderDrawColor(renderer, 0, 0, 255, 0);
 	SDL_RenderFillRect(renderer, &pos_player1);
 	SDL_RenderFillRect(renderer, &pos_player2);
-	SDL_SetRenderDrawColor(renderer, 0, 0 , 0, 255);
+	SDL_RenderFillRect(renderer, & ballPos );
+	SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255 );
+	SDL_RenderPresent(renderer);
 }
 
 void run_game() {
 
-	while ( keep_playing() ) // Change this condition.
+	while ( keep_playing() && go ) // Change this condition.
 	{
 		SDL_Event event;
 
@@ -172,19 +174,12 @@ void run_game() {
 				y_speed = -1 * y_speed;
 			}
 		}
+
+		render();
+
+		SDL_Delay(16);
 	}
 }
-
-
-// Kevin.
-
-
-
-
-
-
-
-
 
 int main( int argc, char* args[]){
 	pos_player1.x = 10;
@@ -204,7 +199,7 @@ int main( int argc, char* args[]){
 
 	cout << "Welcome to KW Pong! Select your mode. Type 2 for multiplayer, or 1 for computer." << endl;
 
-	/*cin >> game_mode;
+	cin >> game_mode;
 
 	while (game_mode != 2 && game_mode != 1) {
 		cout << "You must enter a valid game mode! Please try again...";
@@ -219,6 +214,10 @@ int main( int argc, char* args[]){
 			cout << "Player 1 (left) - use A for UP and Z for down. Player 2 (right) - use UP and DOWN keys." << endl;
 			cout << "Press S to begin. Good luck!" << endl << endl;
 			print_scores();
-	}*/
+	}
+
+	if (! init_everything())
+		return -1;
+
 	run_game();
 }
