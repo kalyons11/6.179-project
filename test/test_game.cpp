@@ -40,7 +40,7 @@ void Render()
 	SDL_RenderClear( renderer );
 
 	// Change color to blue
-	SDL_SetRenderDrawColor( renderer, 0, 0, 255, 255 );
+	SDL_SetRenderDrawColor( renderer, 0, 0, 0, 0 );
 
 	// Render our "player"
 	SDL_RenderFillRect( renderer, &playerPos );
