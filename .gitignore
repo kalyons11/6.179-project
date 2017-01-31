@@ -17,6 +17,7 @@
 *.pyc
 *.DS_Store
 *.csv
+*.exe
 
 # Library directory
 
