@@ -5,6 +5,16 @@
 #include <ctime>
 #include <stdbool.h>
 
+/*
+
+TODO:
+
+Configure paddle sizes.
+Configure X-speed.
+Win by 2 option.
+
+*/
+
 using namespace std;
 
 bool init_everything();
@@ -12,10 +22,8 @@ bool init_sdl();
 bool create_window();
 bool create_renderer();
 void set_up_renderer();
-
 void render();
 void run_game();
-
 void print_scores();
 bool keep_playing();
 
@@ -26,32 +34,29 @@ int sizeY = 400;
 
 SDL_Rect pos_player1;
 SDL_Rect pos_player2;
-
-// Kevin.
-
 SDL_Rect ballPos;
 
 mt19937 rng;
-
 uniform_real_distribution<double> x_dist(10, sizeX - 10);
 uniform_real_distribution<double> y_dist(10, sizeY - 10);
 
 int x_speed = 10;
-int y_speed = 5;
+int y_speed;
 
 bool started = false;
 
 int max_score = 7;
-
 int left_score = 0;
 int right_score = 0;
 
 int game_mode = -1;
 
+int paddle_speed = 25;
+
 void print_scores() {
-	cout << "CURRENT SCORING" << endl;
-	cout << "Player 1 (Left): " << left_score << " | Player 2 (Right): " << right_score << endl;
-	cout << "----------" << endl << endl;
+	//cout << "CURRENT SCORING" << endl;
+	cout << left_score << " - " << right_score << endl;
+	//cout << "----------" << endl << endl;
 }
 
 bool go = true;
@@ -60,13 +65,14 @@ bool keep_playing() {
 	// Determine if we should keep going or end the game...
 	if (left_score < max_score && right_score < max_score) {
 		return true;
-	} else if ((left_score == max_score && right_score == max_score - 1) || (right_score == max_score && left_score == max_score - 1)) {
+	} else if ((left_score >= max_score && right_score == left_score - 1) || (right_score >= max_score && left_score == right_score - 1)) {
 		return true;
 		// Win by 2.
+	} else if (left_score == right_score) {
+		return true;
+		// 7-7 issue.
 	} else return false;
 }
-
-// Kevin ends here.
 
 SDL_Window* window;
 SDL_Renderer* renderer;
@@ -126,6 +132,15 @@ void render() {
 	SDL_RenderPresent(renderer);
 }
 
+void print_winner() {
+	cout << endl;
+	if (left_score > right_score) {
+		cout << "PLAYER 1 WINS!!!" << endl;
+	} else {
+		cout << "PLAYER 2 WINS!!!" << endl;
+	}
+}
+
 void run_game() {
 
 	while ( keep_playing() && go ) // Change this condition.
@@ -143,18 +158,23 @@ void run_game() {
 					case SDLK_s:
 						started = true;
 						break;
-					case SDLK_RIGHT:
-						//++playerPos.x;
+					case SDLK_p:
+						if (started) {
+							started = false;
+							cout << "Game paused." << endl;
+						}
 						break;
-					case SDLK_LEFT:
-						//--playerPos.x;
-						break;
-						// Remeber 0,0 in SDL is left-top. So when the user pressus down, the y need to increase
 					case SDLK_DOWN:
-						//++playerPos.y;
+						pos_player2.y += paddle_speed;
 						break;
 					case SDLK_UP:
-						//--playerPos.y;
+						pos_player2.y -= paddle_speed;
+						break;
+					case SDLK_z:
+						pos_player1.y += paddle_speed;
+						break;
+					case SDLK_a:
+						pos_player1.y -= paddle_speed;
 						break;
 					default:
 						break;
@@ -166,10 +186,26 @@ void run_game() {
 			// Let's move the ball...
 			ballPos.x += x_speed;
 			ballPos.y += y_speed;
-			if (ballPos.x <= 10 || ballPos.x >= sizeX - 10) {
+			if (ballPos.x <= 10) {
 				// Hit left wall.
+				// Check if we hit the paddle...
+				if (ballPos.y >= pos_player1.y && ballPos.y <= pos_player1.y + pos_player1.h) {
+					// All good...
+				} else {
+					right_score++;
+					print_scores();
+				}
 				x_speed = -1 * x_speed;
-			} else if (ballPos.y <= 10 || ballPos.y >= sizeY - 10) {
+			} else if (ballPos.x >= sizeX - 10) {
+				if (ballPos.y >= pos_player2.y && ballPos.y <= pos_player2.y + pos_player2.h) {
+					// All good...
+				} else {
+					left_score++;
+					print_scores();
+				}
+				x_speed = -1 * x_speed;
+			}
+			else if (ballPos.y <= 10 || ballPos.y >= sizeY - 10) {
 				// Hit left wall.
 				y_speed = -1 * y_speed;
 			}
@@ -179,23 +215,31 @@ void run_game() {
 
 		SDL_Delay(16);
 	}
+
+	print_winner();
 }
 
-int main(int argc, char* args[]){
-	pos_player1.x = 10;
+int main( int argc, char* args[]){
+	pos_player1.x = 0;
 	pos_player1.y = 200;
-	pos_player1.w = 20;
-	pos_player1.h = 50;
+	pos_player1.w = 10;
+	pos_player1.h = 100;
 
 	pos_player2.x = 590;
 	pos_player2.y = 200;
-	pos_player2.w = 20;
-	pos_player2.h = 50;
+	pos_player2.w = 10;
+	pos_player2.h = 100;
 
 	ballPos.x = int(x_dist(rng));
 	ballPos.y = int(y_dist(rng));
 	ballPos.w = 20;
 	ballPos.h = 20;
+
+	int min = -5, max = 5;
+	random_device rd;
+	mt19937 rng(rd());
+	uniform_int_distribution<int> uni(min,max);
+	y_speed = uni(rng);
 
 	cout << "Welcome to KW Pong! Select your mode. Type 2 for multiplayer, or 1 for computer." << endl;
 
@@ -208,7 +252,7 @@ int main(int argc, char* args[]){
 
 	switch (game_mode) {
 		case 1:
-			cout << "Now playing against the computer! Press S to begin. Good luck!" << endl;
+			cout << "Now playing against the computer! Press S to begin. Press P to pause. Good luck!" << endl;
 			break;
 		case 2:
 			cout << "Player 1 (left) - use A for UP and Z for down. Player 2 (right) - use UP and DOWN keys." << endl;
@@ -220,4 +264,6 @@ int main(int argc, char* args[]){
 		return -1;
 
 	run_game();
+
+	return 0;
 }
