@@ -33,7 +33,7 @@ SDL_Rect ballPos;
 mt19937 rng;
 uniform_real_distribution<double> y_dist(10, sizeY - 10);
 
-int x_speed = 7;
+int x_speed = 5;
 int y_speed;
 int max_score = 7;
 int left_score = 0;
