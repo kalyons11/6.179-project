@@ -1,30 +1,22 @@
 #include <SDL.h>
+#include <SDL_image.h>
+#include <SDL_ttf.h>
 #include <iostream>
-#include <stdlib.h>
 #include <random>
-#include <stdbool.h>
-
-/*
-
-TODO:
-
-Configure paddle sizes.
-Configure X-speed.
-Win by 2 option.
-
-*/
 
 using namespace std;
+
+SDL_Window* window;
+SDL_Renderer* renderer;
 
 bool init_everything();
 bool init_sdl();
 bool create_window();
 bool create_renderer();
 void set_up_renderer();
+
 void render();
 void run_game();
-void print_scores();
-bool keep_playing();
 
 int posX = 100;
 int posY = 200;
@@ -73,62 +65,78 @@ bool keep_playing() {
 	} else return false;
 }
 
-SDL_Window* window;
-SDL_Renderer* renderer;
-
-bool init_everything(){
-	if(!init_sdl()){
-		return false;
-	}
-	if(!create_window()){
-		return false;
-	}
-	if(!create_renderer()){
-		return false;
-	}
-	set_up_renderer();
-	return true;
-}
-
-bool init_sdl() {
-	if(SDL_Init(SDL_INIT_EVERYTHING) == -1){
-		cout << "SDL failed to initialize: " << SDL_GetError() << endl;
-		return false;
-	}
-	return true;
-}
-
-bool create_window() {
-	window = SDL_CreateWindow("KW Pong", posX, posY, sizeX, sizeY, 0);
-	if(window == nullptr){
-		cout << "Could not create window:" << SDL_GetError()<< endl;
-		return false;
-	}
-	return true;
-}
-
-bool create_renderer() {
-	renderer = SDL_CreateRenderer(window, -1, 0);
-	if(renderer == nullptr){
-		cout<< "Could not create renderer: " << SDL_GetError() << endl;
-		return false;
-	}
-	return true;
-}
-
-void set_up_renderer() {
-	SDL_RenderSetLogicalSize(renderer, sizeX, sizeY);
-	SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-}
 
 void render() {
 	SDL_RenderClear(renderer);
-	SDL_SetRenderDrawColor(renderer, 0, 0, 255, 0);
+	SDL_SetRenderDrawColor(renderer, 255, 255, 255, 0);
 	SDL_RenderFillRect(renderer, &pos_player1);
 	SDL_RenderFillRect(renderer, &pos_player2);
 	SDL_RenderFillRect(renderer, & ballPos );
-	SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255 );
+	SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255 );
 	SDL_RenderPresent(renderer);
+}
+
+void menu_render(){
+
+}
+
+bool init_everything(){
+	TTF_Init();
+
+	if ( !init_sdl() )
+		return false;
+
+	if ( !create_window() )
+		return false;
+
+	if ( !create_renderer() )
+		return false;
+
+	set_up_renderer();
+
+	return true;
+}
+
+bool init_sdl(){
+	if ( SDL_Init( SDL_INIT_EVERYTHING ) == -1 )
+	{
+		cout << " Failed to initialize SDL : " << SDL_GetError() << endl;
+		return false;
+	}
+
+	return true;
+}
+
+bool create_window(){
+	window = SDL_CreateWindow( "Server", posX, posY, sizeX, sizeY, 0 );
+
+	if ( window == nullptr )
+	{
+		cout << "Failed to create window : " << SDL_GetError();
+		return false;
+	}
+
+	return true;
+}
+
+bool create_renderer(){
+	renderer = SDL_CreateRenderer( window, -1, 0 );
+
+	if ( renderer == nullptr )
+	{
+		cout << "Failed to create renderer : " << SDL_GetError();
+		return false;
+	}
+
+	return true;
+}
+
+void set_up_renderer(){
+	// Set size of renderer to the same as window
+	SDL_RenderSetLogicalSize( renderer, sizeX, sizeY );
+
+	// Set color of renderer to green
+	SDL_SetRenderDrawColor( renderer, 0, 255, 0, 255 );
 }
 
 void print_winner() {
@@ -138,6 +146,51 @@ void print_winner() {
 	} else {
 		cout << "PLAYER 2 WINS!!!" << endl;
 	}
+}
+
+void run_menu() {
+
+	bool quit = false;
+	SDL_Event event;
+
+	SDL_Init(SDL_INIT_VIDEO);
+	SDL_Surface* menu = IMG_Load("pong.jpeg");
+	SDL_Texture * texture = SDL_CreateTextureFromSurface(renderer, menu);
+
+	TTF_Font *font = TTF_OpenFont("terminal.ttf", 18);
+	SDL_Color white = {255, 255, 255};
+	SDL_Surface *text = TTF_RenderText_Solid(font, "Press ENTER/RETURN to continue", white);
+
+	/*SDL_Texture *input_prompt = SDL_CreateTextureFromSurface(renderer, text);
+	int texW = 0;
+	int texH = 0;
+	SDL_QueryTexture(input_prompt, NULL, NULL, &texW, &texH);
+	SDL_Rect txtrect = {200, 300, texW, texH};*/
+
+	while (! quit && go) // Change this condition.
+	{
+		SDL_Event event;
+
+		while ( SDL_PollEvent( & event ) )
+		{
+			if ( event.type == SDL_QUIT )
+				go = false;
+			else if ( event.type == SDL_KEYDOWN )
+			{
+				switch ( event.key.keysym.sym ){
+
+					case SDLK_RETURN:
+					quit = true;
+					break;
+				}
+			}
+		}
+
+		SDL_RenderCopy(renderer, texture, NULL, NULL);
+		//SDL_RenderCopy(renderer, input_prompt, NULL, NULL);
+		SDL_RenderPresent(renderer);
+	}
+
 }
 
 void run_game() {
@@ -164,20 +217,16 @@ void run_game() {
 						}
 						break;
 					case SDLK_DOWN:
-						if (pos_player2.y + paddle_speed + pos_player2.h <= sizeY)
-							pos_player2.y += paddle_speed;
+						pos_player2.y += paddle_speed;
 						break;
 					case SDLK_UP:
-						if (pos_player2.y - paddle_speed >= 0)
-							pos_player2.y -= paddle_speed;
+						pos_player2.y -= paddle_speed;
 						break;
 					case SDLK_z:
-						if (pos_player1.y + paddle_speed + pos_player1.h <= sizeY)
-							pos_player1.y += paddle_speed;
+						pos_player1.y += paddle_speed;
 						break;
 					case SDLK_a:
-						if (pos_player1.y - paddle_speed >= 0)
-							pos_player1.y -= paddle_speed;
+						pos_player1.y -= paddle_speed;
 						break;
 					default:
 						break;
@@ -222,7 +271,15 @@ void run_game() {
 	print_winner();
 }
 
-int main( int argc, char* args[]){
+
+int main( int argc, char* args[] )
+{
+	cout << "Made it here." << endl;
+
+	if ( ! init_everything() ) 
+		return -1;
+
+	// Initlaize our playe
 	pos_player1.x = 0;
 	pos_player1.y = 200;
 	pos_player1.w = 10;
@@ -238,34 +295,17 @@ int main( int argc, char* args[]){
 	ballPos.w = 20;
 	ballPos.h = 20;
 
+	int min = -5, max = 5;
 	random_device rd;
 	mt19937 rng(rd());
-	uniform_int_distribution<int> uni(2, 5);
+	uniform_int_distribution<int> uni(min,max);
 	y_speed = uni(rng);
 
-	cout << "Welcome to KW Pong! Select your mode. Type 2 for multiplayer, or 1 for computer." << endl;
-
-	cin >> game_mode;
-
-	while (game_mode != 2 && game_mode != 1) {
-		cout << "You must enter a valid game mode! Please try again...";
-		cin >> game_mode;
-	}
-
-	switch (game_mode) {
-		case 1:
-			cout << "Now playing against the computer! Press S to begin. Press P to pause. Good luck!" << endl;
-			break;
-		case 2:
-			cout << "Player 1 (left) - use A for UP and Z for down. Player 2 (right) - use UP and DOWN keys." << endl;
-			cout << "Press S to begin. Good luck!" << endl << endl;
-			print_scores();
-	}
-
-	if (! init_everything())
-		return -1;
+	run_menu();
 
 	run_game();
 
-	return 0;
+	SDL_Quit();
+	
+	TTF_Quit();
 }
