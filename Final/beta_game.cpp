@@ -1,6 +1,7 @@
 #include <SDL.h>
 #include <SDL_image.h>
 #include <SDL_ttf.h>
+#include <SDL_mixer.h>
 #include <iostream>
 #include <random>
 
@@ -43,6 +44,8 @@ int game_mode = -1;
 
 int paddle_speed = 25;
 
+Mix_Music *techno;
+
 void print_scores() {
 	//cout << "CURRENT SCORING" << endl;
 	cout << left_score << " - " << right_score << endl;
@@ -81,6 +84,8 @@ void menu_render(){
 
 bool init_everything(){
 	TTF_Init();
+	SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO);
+	Mix_OpenAudio( 44100, MIX_DEFAULT_FORMAT, 2, 2048);
 
 	if ( !init_sdl() )
 		return false;
@@ -147,12 +152,16 @@ void print_winner() {
 	}
 }
 
+void music(){
+	techno = Mix_LoadMUS("techno.mp3");
+	Mix_PlayMusic(techno, -1);
+}
+
 void run_menu() {
 
 	bool quit = false;
 	SDL_Event event;
 
-	SDL_Init(SDL_INIT_VIDEO);
 	SDL_Surface* menu = IMG_Load("pong.jpeg");
 	SDL_Texture * texture = SDL_CreateTextureFromSurface(renderer, menu);
 
@@ -320,12 +329,14 @@ void run_game() {
 
 int main( int argc, char* args[] )
 {
-	cout << endl;
+	
 
 	if ( ! init_everything() ) 
 		return -1;
 
-	// Initlaize our playe
+	music();
+
+		// Initlaize our playe
 	pos_player1.x = 0;
 	pos_player1.y = 200;
 	pos_player1.w = 10;
