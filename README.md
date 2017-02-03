@@ -2,7 +2,7 @@
 Final project for 6.179 MIT IAP 2017.
 
 ### About This Project
-More to come here.
+Created simple Pong game using C++ and SDL graphics library. Lots of custom logic and cool features!
     
 ### Contributors
 - Will Roberts
