@@ -107,7 +107,7 @@ bool init_sdl() {
 }
 
 bool create_window() {
-	window = SDL_CreateWindow("KW PONG", posX, posY, sizeX, sizeY, 0 );
+	window = SDL_CreateWindow( "Server", posX, posY, sizeX, sizeY, 0 );
 
 	if ( window == nullptr )
 	{
@@ -159,7 +159,7 @@ void run_menu() {
 
 	TTF_Font *font = TTF_OpenFont("terminal.ttf", 18);
 	SDL_Color white = {255, 255, 255};
-	SDL_Surface *text = TTF_RenderText_Solid(font, "Press ENTER to play.", white);
+	SDL_Surface *text = TTF_RenderText_Solid(font, "Press ENTER/RETURN to continue!", white);
 
 	SDL_Texture *input_prompt = SDL_CreateTextureFromSurface(renderer, text);
 	int texW = 0;
