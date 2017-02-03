@@ -30,7 +30,6 @@ SDL_Rect pos_player2;
 SDL_Rect ballPos;
 
 mt19937 rng;
-uniform_real_distribution<double> x_dist(10, sizeX - 10);
 uniform_real_distribution<double> y_dist(10, sizeY - 10);
 
 int x_speed = 10;
@@ -296,29 +295,38 @@ void run_game() {
 			if (ballPos.x <= 0) {
 				// Hit left wall.
 				// Check if we hit the paddle...
-				if (ballPos.y >= pos_player1.y && ballPos.y <= pos_player1.y + pos_player1.h) {
+				if (ballPos.y + 15 >= pos_player1.y && ballPos.y <= pos_player1.y + pos_player1.h) {
 					// All good...
+					x_speed = -1 * x_speed;
 				} else {
 					right_score++;
 					string x = to_string(right_score);
 					right_surface = TTF_RenderText_Solid(bigFont, x.c_str(), white);
 					right_texture = SDL_CreateTextureFromSurface(renderer, right_surface);
 					SDL_QueryTexture(right_texture, NULL, NULL, &rightW, &rightH);
-					//print_scores();
+					ballPos.x = 295;
+					ballPos.y = int(y_dist(rng));
+					SDL_Delay(1000);
 				}
-				x_speed = -1 * x_speed;
-			} else if (ballPos.x >= sizeX - 10) {
-				if (ballPos.y >= pos_player2.y && ballPos.y <= pos_player2.y + pos_player2.h) {
+				
+				
+			} 
+			else if (ballPos.x >= sizeX - 15) {
+				if (ballPos.y + 15>= pos_player2.y && ballPos.y <= pos_player2.y + pos_player2.h) {
 					// All good...
+					x_speed = -1 * x_speed;
 				} else {
 					left_score++;
 					string x = to_string(left_score);
 					left_surface = TTF_RenderText_Solid(bigFont, x.c_str(), white);
 					left_texture = SDL_CreateTextureFromSurface(renderer, left_surface);
 					SDL_QueryTexture(left_texture, NULL, NULL, &leftW, &leftH);
-					//print_scores();
+					ballPos.x = 295;
+					ballPos.y = int(y_dist(rng));
+					SDL_Delay(1000);
 				}
-				x_speed = -1 * x_speed;
+				
+
 			}
 			else if (ballPos.y <= 10 || ballPos.y >= sizeY - 10) {
 				// Hit left wall.
@@ -365,10 +373,10 @@ int main( int argc, char* args[] )
 	pos_player2.w = 10;
 	pos_player2.h = 100;
 
-	ballPos.x = int(x_dist(rng));
+	ballPos.x = 295;
 	ballPos.y = int(y_dist(rng));
-	ballPos.w = 20;
-	ballPos.h = 20;
+	ballPos.w = 15;
+	ballPos.h = 15;
 
 	random_device rd;
 	mt19937 rng(rd());
