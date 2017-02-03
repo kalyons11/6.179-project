@@ -107,7 +107,7 @@ bool init_sdl() {
 }
 
 bool create_window() {
-	window = SDL_CreateWindow( "Server", posX, posY, sizeX, sizeY, 0 );
+	window = SDL_CreateWindow( "KW PONG", posX, posY, sizeX, sizeY, 0 );
 
 	if ( window == nullptr )
 	{
