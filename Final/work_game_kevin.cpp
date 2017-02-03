@@ -159,13 +159,14 @@ void run_menu() {
 
 	TTF_Font *font = TTF_OpenFont("terminal.ttf", 18);
 	SDL_Color white = {255, 255, 255};
-	SDL_Surface *text = TTF_RenderText_Solid(font, "Press ENTER/RETURN to continue", white);
+	SDL_Surface *text = TTF_RenderText_Solid(font, "Press ENTER/RETURN to continue!", white);
 
-	/*SDL_Texture *input_prompt = SDL_CreateTextureFromSurface(renderer, text);
+	SDL_Texture *input_prompt = SDL_CreateTextureFromSurface(renderer, text);
 	int texW = 0;
 	int texH = 0;
 	SDL_QueryTexture(input_prompt, NULL, NULL, &texW, &texH);
-	SDL_Rect txtrect = {200, 300, texW, texH};*/
+
+	SDL_Rect txtrect = {320 - texW / 2, 300, texW, texH};
 
 	while (! quit && go) // Change this condition.
 	{
@@ -187,13 +188,27 @@ void run_menu() {
 		}
 
 		SDL_RenderCopy(renderer, texture, NULL, NULL);
-		//SDL_RenderCopy(renderer, input_prompt, NULL, NULL);
+		SDL_RenderCopy(renderer, input_prompt, NULL, & txtrect);
 		SDL_RenderPresent(renderer);
 	}
+
+	SDL_DestroyTexture(texture);
+	SDL_DestroyTexture(input_prompt);
 
 }
 
 void run_game() {
+
+	TTF_Font *font = TTF_OpenFont("terminal.ttf", 18);
+	SDL_Color white = {255, 255, 255};
+	SDL_Surface *text = TTF_RenderText_Solid(font, "'S' to start. 'P' to pause.", white);
+
+	SDL_Texture *input_prompt = SDL_CreateTextureFromSurface(renderer, text);
+	int texW = 0;
+	int texH = 0;
+	SDL_QueryTexture(input_prompt, NULL, NULL, &texW, &texH);
+
+	SDL_Rect txtrect = {320 - texW / 2, 100, texW, texH};
 
 	while ( keep_playing() && go ) // Change this condition.
 	{
@@ -201,6 +216,7 @@ void run_game() {
 
 		while ( SDL_PollEvent( & event ) )
 		{
+
 			if ( event.type == SDL_QUIT )
 				go = false;
 			else if ( event.type == SDL_KEYDOWN )
@@ -217,16 +233,20 @@ void run_game() {
 						}
 						break;
 					case SDLK_DOWN:
-						pos_player2.y += paddle_speed;
+						if (pos_player2.y + paddle_speed + pos_player2.h <= sizeY)
+							pos_player2.y += paddle_speed;
 						break;
 					case SDLK_UP:
-						pos_player2.y -= paddle_speed;
+						if (pos_player2.y - paddle_speed >= 0)
+							pos_player2.y -= paddle_speed;
 						break;
 					case SDLK_z:
-						pos_player1.y += paddle_speed;
+						if (pos_player1.y + paddle_speed + pos_player1.h <= sizeY)
+							pos_player1.y += paddle_speed;
 						break;
 					case SDLK_a:
-						pos_player1.y -= paddle_speed;
+						if (pos_player1.y - paddle_speed >= 0)
+							pos_player1.y -= paddle_speed;
 						break;
 					default:
 						break;
@@ -263,18 +283,29 @@ void run_game() {
 			}
 		}
 
-		render();
-
+		SDL_RenderClear(renderer);
+		if (! started) {
+			SDL_RenderCopy(renderer, input_prompt, NULL, & txtrect);
+		}
+		SDL_SetRenderDrawColor(renderer, 255, 255, 255, 0);
+		SDL_RenderFillRect(renderer, &pos_player1);
+		SDL_RenderFillRect(renderer, &pos_player2);
+		SDL_RenderFillRect(renderer, & ballPos );
+		SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255 );
+		SDL_RenderPresent(renderer);
+		
 		SDL_Delay(16);
 	}
 
-	print_winner();
+	if (go) {
+		print_winner();
+	}
 }
 
 
 int main( int argc, char* args[] )
 {
-	cout << "Made it here." << endl;
+	cout << endl;
 
 	if ( ! init_everything() ) 
 		return -1;
@@ -295,10 +326,9 @@ int main( int argc, char* args[] )
 	ballPos.w = 20;
 	ballPos.h = 20;
 
-	int min = -5, max = 5;
 	random_device rd;
 	mt19937 rng(rd());
-	uniform_int_distribution<int> uni(min,max);
+	uniform_int_distribution<int> uni(2, 5);
 	y_speed = uni(rng);
 
 	run_menu();
