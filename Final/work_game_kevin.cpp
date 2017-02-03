@@ -3,6 +3,8 @@
 #include <SDL_ttf.h>
 #include <iostream>
 #include <random>
+#include <stdio.h>
+#include <stdlib.h>
 
 using namespace std;
 
@@ -139,15 +141,6 @@ void set_up_renderer(){
 	SDL_SetRenderDrawColor( renderer, 0, 255, 0, 255 );
 }
 
-void print_winner() {
-	cout << endl;
-	if (left_score > right_score) {
-		cout << "PLAYER 1 WINS!!!" << endl;
-	} else {
-		cout << "PLAYER 2 WINS!!!" << endl;
-	}
-}
-
 void run_menu() {
 
 	bool quit = false;
@@ -197,18 +190,61 @@ void run_menu() {
 
 }
 
-void run_game() {
+void finish_menu() {
 
 	TTF_Font *font = TTF_OpenFont("terminal.ttf", 18);
 	SDL_Color white = {255, 255, 255};
-	SDL_Surface *text = TTF_RenderText_Solid(font, "'S' to start. 'P' to pause.", white);
 
+	SDL_RenderClear(renderer);
+
+	string result;
+
+	if (left_score > right_score) {
+		result = "PLAYER 1 WINS!!!";
+	} else {
+		result = "PLAYER 2 WINS!!!";
+	}
+
+	result = result + "\n'Y' to play again. 'N' to quit.";
+
+	SDL_Surface *text = TTF_RenderText_Solid(font, result.c_str(), white);
 	SDL_Texture *input_prompt = SDL_CreateTextureFromSurface(renderer, text);
 	int texW = 0;
 	int texH = 0;
 	SDL_QueryTexture(input_prompt, NULL, NULL, &texW, &texH);
+	SDL_Rect txtrect = {320 - texW / 2, 75, texW, texH};
 
-	SDL_Rect txtrect = {320 - texW / 2, 100, texW, texH};
+	SDL_RenderCopy(renderer, input_prompt, NULL, & txtrect);
+	SDL_RenderPresent(renderer);
+
+}
+
+void run_game() {
+
+	TTF_Font *font = TTF_OpenFont("terminal.ttf", 18);
+	TTF_Font *bigFont = TTF_OpenFont("terminal.ttf", 40);
+	SDL_Color white = {255, 255, 255};
+
+	SDL_Surface *text = TTF_RenderText_Solid(font, "'S' to start. 'P' to pause.", white);
+	SDL_Texture *input_prompt = SDL_CreateTextureFromSurface(renderer, text);
+	int texW = 0;
+	int texH = 0;
+	SDL_QueryTexture(input_prompt, NULL, NULL, &texW, &texH);
+	SDL_Rect txtrect = {320 - texW / 2, 75, texW, texH};
+
+	SDL_Surface *left_surface = TTF_RenderText_Solid(bigFont, "0", white);
+	SDL_Texture *left_texture = SDL_CreateTextureFromSurface(renderer, left_surface);
+	int leftW = 0;
+	int leftH = 0;
+	SDL_QueryTexture(left_texture, NULL, NULL, &leftW, &leftH);
+	SDL_Rect leftRect = { 270 - leftW , 10 , leftW, leftH };
+
+	SDL_Surface *right_surface = TTF_RenderText_Solid(bigFont, "0", white);
+	SDL_Texture *right_texture = SDL_CreateTextureFromSurface(renderer, right_surface);
+	int rightW = 0;
+	int rightH = 0;
+	SDL_QueryTexture(right_texture, NULL, NULL, &rightW, &rightH);
+	SDL_Rect rightRect = { 330 , 10 , rightW, rightH };
 
 	while ( keep_playing() && go ) // Change this condition.
 	{
@@ -229,23 +265,22 @@ void run_game() {
 					case SDLK_p:
 						if (started) {
 							started = false;
-							cout << "Game paused." << endl;
 						}
 						break;
 					case SDLK_DOWN:
-						if (pos_player2.y + paddle_speed + pos_player2.h <= sizeY)
+						if (pos_player2.y + paddle_speed + pos_player2.h <= sizeY && started)
 							pos_player2.y += paddle_speed;
 						break;
 					case SDLK_UP:
-						if (pos_player2.y - paddle_speed >= 0)
+						if (pos_player2.y - paddle_speed >= 0 && started)
 							pos_player2.y -= paddle_speed;
 						break;
 					case SDLK_z:
-						if (pos_player1.y + paddle_speed + pos_player1.h <= sizeY)
+						if (pos_player1.y + paddle_speed + pos_player1.h <= sizeY && started)
 							pos_player1.y += paddle_speed;
 						break;
 					case SDLK_a:
-						if (pos_player1.y - paddle_speed >= 0)
+						if (pos_player1.y - paddle_speed >= 0 && started)
 							pos_player1.y -= paddle_speed;
 						break;
 					default:
@@ -258,14 +293,18 @@ void run_game() {
 			// Let's move the ball...
 			ballPos.x += x_speed;
 			ballPos.y += y_speed;
-			if (ballPos.x <= 10) {
+			if (ballPos.x <= 0) {
 				// Hit left wall.
 				// Check if we hit the paddle...
 				if (ballPos.y >= pos_player1.y && ballPos.y <= pos_player1.y + pos_player1.h) {
 					// All good...
 				} else {
 					right_score++;
-					print_scores();
+					string x = to_string(right_score);
+					right_surface = TTF_RenderText_Solid(bigFont, x.c_str(), white);
+					right_texture = SDL_CreateTextureFromSurface(renderer, right_surface);
+					SDL_QueryTexture(right_texture, NULL, NULL, &rightW, &rightH);
+					//print_scores();
 				}
 				x_speed = -1 * x_speed;
 			} else if (ballPos.x >= sizeX - 10) {
@@ -273,7 +312,11 @@ void run_game() {
 					// All good...
 				} else {
 					left_score++;
-					print_scores();
+					string x = to_string(left_score);
+					left_surface = TTF_RenderText_Solid(bigFont, x.c_str(), white);
+					left_texture = SDL_CreateTextureFromSurface(renderer, left_surface);
+					SDL_QueryTexture(left_texture, NULL, NULL, &leftW, &leftH);
+					//print_scores();
 				}
 				x_speed = -1 * x_speed;
 			}
@@ -287,6 +330,8 @@ void run_game() {
 		if (! started) {
 			SDL_RenderCopy(renderer, input_prompt, NULL, & txtrect);
 		}
+		SDL_RenderCopy(renderer, left_texture, NULL, & leftRect);
+		SDL_RenderCopy(renderer, right_texture, NULL, & rightRect);
 		SDL_SetRenderDrawColor(renderer, 255, 255, 255, 0);
 		SDL_RenderFillRect(renderer, &pos_player1);
 		SDL_RenderFillRect(renderer, &pos_player2);
@@ -298,19 +343,18 @@ void run_game() {
 	}
 
 	if (go) {
-		print_winner();
+		
+		finish_menu();
+
 	}
 }
 
-
 int main( int argc, char* args[] )
 {
-	cout << endl;
 
 	if ( ! init_everything() ) 
 		return -1;
 
-	// Initlaize our playe
 	pos_player1.x = 0;
 	pos_player1.y = 200;
 	pos_player1.w = 10;
